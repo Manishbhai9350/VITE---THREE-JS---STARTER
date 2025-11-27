@@ -48,7 +48,13 @@ Cube.rotation.set(-PI/4,PI/4,PI/2)
 scene.add(Cube)
 
 
-function Animate(){
+const clock = new THREE.Clock();
+let Time = clock.getElapsedTime();
+
+function Animate(t) {
+  const NewTime = clock.getElapsedTime();
+  const DT = NewTime - Time;
+  Time = NewTime;
   Cube.rotation.z += .01
   renderer.render(scene,camera)
   requestAnimationFrame(Animate)
