@@ -7,6 +7,8 @@ import vertexShader from "./shaders/vertex.glsl";
 import { Clock } from "three";
 import { GetSceneBounds } from "./utils";
 import { GPGPU } from "./classes/gpgpu";
+import { Uniform } from "three";
+import { Texture } from "three";
 
 const { PI } = Math;
 
@@ -31,8 +33,6 @@ const camera = new THREE.PerspectiveCamera(
 );
 camera.position.z = 5;
 
-const material = new THREE.MeshBasicMaterial();
-
 const Manager = new THREE.LoadingManager();
 const Draco = new DRACOLoader(Manager);
 const GLB = new GLTFLoader(Manager);
@@ -51,14 +51,31 @@ const gpgpu = {
   instance: new GPGPU(renderer),
 };
 
-const Cube = new THREE.Mesh(
+// const material = new THREE.ShaderMaterial({
+//   vertexShader,
+//   fragmentShader,
+//   uniforms: {
+//     uComputed: { value: null },
+//   },
+// });
+
+const material = new THREE.MeshBasicMaterial();
+
+const Plane = new THREE.Mesh(
   new THREE.PlaneGeometry(SceneWidth, SceneHeight),
   material,
 );
 
-Cube.material.map = gpgpu.instance.Computed();
+// Plane.material.uniforms.uComputed.value = gpgpu.instance.Computed();
+Plane.material.map = gpgpu.instance.Computed();
 
-scene.add(Cube);
+Plane.material.onBeforeCompile = (shader) => {
+  console.log(shader.fragmentShader);
+  // shader.vertexShader = vertexShader;
+  // shader.fragmentShader = fragmentShader;
+};
+
+scene.add(Plane);
 
 const clock = new Clock();
 let PrevTime = clock.getElapsedTime();
@@ -68,8 +85,8 @@ function Animate() {
   const DT = CurrentTime - PrevTime;
   PrevTime = CurrentTime;
 
-  Cube.material.map.needsUpdate = true;
   gpgpu.instance.update(DT);
+  // Plane.material.uniforms.uComputed.value = gpgpu.instance.Computed();
 
   renderer.render(scene, camera);
   requestAnimationFrame(Animate);

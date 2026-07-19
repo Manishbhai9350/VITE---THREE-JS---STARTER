@@ -35,6 +35,11 @@ export class GPGPU {
   mouse = {
     target: new Vector2(),
     current: new Vector2(),
+    prev: new Vector2(),
+  };
+  mouseVelocity = {
+    x: 0,
+    y: 0,
   };
   material = new ShaderMaterial({
     vertexShader,
@@ -101,14 +106,22 @@ export class GPGPU {
   }
 
   updateComputeData() {
+    this.uniforms.uMouseVelocity.value.set(
+      this.mouseVelocity.x,
+      this.mouseVelocity.y,
+    );
     this.uniforms.uMouse.value.copy(this.mouse.current);
     this.uniforms.uVelocity.value = this.read.texture;
     const deltaMouse = this.currentMouse.clone().sub(this.lastMouse);
   }
 
   update(dt) {
+    this.mouse.prev.set(this.mouse.current.x, this.mouse.current.y);
     this.mouse.current.x += (this.mouse.target.x - this.mouse.current.x) * 0.1;
     this.mouse.current.y += (this.mouse.target.y - this.mouse.current.y) * 0.1;
+
+    this.mouseVelocity.x = this.mouse.current.x - this.mouse.prev.x;
+    this.mouseVelocity.y = this.mouse.current.y - this.mouse.prev.y;
 
     this.updateComputeData();
     this.Compute();
